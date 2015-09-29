@@ -243,6 +243,7 @@ public class MyJ48 extends Classifier {
     private double computeIG(Instances instances, Attribute attribute)
             throws Exception {
         double IG = computeE(instances);
+        int missingCount = 0;
         Instances[] splitData = splitDataBasedOnAttribute(instances, attribute);
         for (int j = 0; j < attribute.numValues(); j++) {
             if (splitData[j].numInstances() > 0) {
@@ -251,7 +252,14 @@ public class MyJ48 extends Classifier {
                         computeE(splitData[j]);
             }
         }
-        return IG;
+
+        for(int i=0; i<instances.numInstances(); i++){
+            Instance instance = instances.instance(i);
+            if(instance.isMissing(attribute)){
+                missingCount++;
+            }
+        }
+        return IG * (instances.numInstances() - missingCount / instances.numInstances());
     }
 
     private double computeE(Instances instances) throws Exception {

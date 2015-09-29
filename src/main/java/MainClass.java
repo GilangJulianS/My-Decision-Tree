@@ -29,12 +29,16 @@ public class MainClass {
             }else if(args[i].equals("-al")){
                 if(args[i+1].equals("bayes")){
                     algorithm = WekaHelper.BAYES;
-                }else if(args[i+1].equals("tree")){
-                    algorithm = WekaHelper.DECISION_TREE;
+                }else if(args[i+1].equals("id3")){
+                    algorithm = WekaHelper.ID3;
+                }else if(args[i+1].equals("j48")){
+                    algorithm = WekaHelper.J48;
                 }else if(args[i+1].equals("mybayes")){
                     algorithm = WekaHelper.MY_BAYES;
-                }else if(args[i+1].equals("mytree")){
-                    algorithm = WekaHelper.MY_DECISION_TREE;
+                }else if(args[i+1].equals("myid3")){
+                    algorithm = WekaHelper.MY_ID3;
+                }else if(args[i+1].equals("myj48")){
+                    algorithm = WekaHelper.MY_J48;
                 }
             }else if(args[i].equals("-mode")){
                 if(args[i+1].equals("train")){
@@ -59,7 +63,7 @@ public class MainClass {
         try {
             if (mode == MainClass.MODE_TRAIN) {
                 Instances data = WekaHelper.readArff(dataFile);
-                classifier = WekaHelper.buildClassifier(data, mode);
+                classifier = WekaHelper.buildClassifier(data, algorithm);
                 WekaHelper.saveModel(dataFile.replace(".arff", ".model"), classifier);
             } else if (mode == MainClass.MODE_CLASSIFY) {
                 Instances dataTest = WekaHelper.readArff(testFile);
@@ -79,7 +83,7 @@ public class MainClass {
     }
 
     public static void debugMode() throws Exception {
-        Instances data = WekaHelper.readArff("data/weather.nominal.arff");
+        Instances data = WekaHelper.readArff("data/cpu.arff");
         Classifier classifier = WekaHelper.buildClassifier(data, WekaHelper.MY_J48);
         WekaHelper.crossValidate(data, classifier);
     }

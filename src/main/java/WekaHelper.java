@@ -1,6 +1,7 @@
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.trees.Id3;
 import weka.classifiers.trees.J48;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
@@ -17,10 +18,11 @@ import java.util.Random;
 public class WekaHelper {
 
     public static final int BAYES = 0;
-    public static final int DECISION_TREE = 1;
-    public static final int MY_BAYES = 2;
-    public static final int MY_DECISION_TREE = 3;
-    public static final int MY_J48 = 4;
+    public static final int ID3 = 1;
+    public static final int J48 = 2;
+    public static final int MY_BAYES = 3;
+    public static final int MY_ID3 = 4;
+    public static final int MY_J48 = 5;
 
     public static Instances readArff(String fileName) throws Exception {
         DataSource source = new DataSource(fileName);
@@ -51,10 +53,13 @@ public class WekaHelper {
         if(classifierType == BAYES){
             classifier = new NaiveBayes();
             classifier.buildClassifier(data);
-        }else if(classifierType == DECISION_TREE){
+        }else if(classifierType == ID3){
+            classifier = new Id3();
+            classifier.buildClassifier(data);
+        }else if(classifierType == J48){
             classifier = new J48();
             classifier.buildClassifier(data);
-        }else if(classifierType == MY_DECISION_TREE){
+        }else if(classifierType == MY_ID3){
             classifier = new MyID3();
             classifier.buildClassifier(data);
         }else if(classifierType == MY_J48){

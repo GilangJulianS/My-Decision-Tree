@@ -83,7 +83,7 @@ public class MainClass {
     }
 
     public static void debugMode() throws Exception {
-        Instances data = WekaHelper.readArff("data/cpu.arff");
+        Instances data = WekaHelper.readArff("data/iris.arff");
         Classifier classifier = WekaHelper.buildClassifier(data, WekaHelper.MY_J48);
         WekaHelper.crossValidate(data, classifier);
     }

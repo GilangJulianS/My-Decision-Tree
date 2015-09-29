@@ -92,7 +92,7 @@ public class MyJ48 extends Classifier {
     }
 
     protected Instances prePruning(Instances instances) throws Exception {
-        ArrayList<Integer> unsignificantAttributes = new ArrayList<>();
+        ArrayList<Integer> unsignificantAttributes = new ArrayList();
         Enumeration attEnum = instances.enumerateAttributes();
         while (attEnum.hasMoreElements()) {
             double currentGainRatio;
@@ -251,10 +251,6 @@ public class MyJ48 extends Classifier {
         double IV = computeIntrinsicValue(data, attribute);
         if(IG == 0 || IV == 0)
             return 0;
-<<<<<<< HEAD
-=======
-//        System.out.println("gain ratio " + IG / IV);
->>>>>>> 613d3c472d8cda45363352917e09dc31b68688f0
         return IG/IV;
     }
 

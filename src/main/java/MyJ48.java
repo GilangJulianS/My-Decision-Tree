@@ -13,7 +13,7 @@ import static weka.core.Utils.log2;
  */
 public class MyJ48 extends Classifier {
 
-    private MyID3[] successors;
+    private MyJ48[] successors;
     private Attribute splitAttribute;
     private double classValue;
     private double[] classDistribution;
@@ -79,9 +79,9 @@ public class MyJ48 extends Classifier {
                 classAttribute = instances.classAttribute();
             } else {
                 Instances[] splitData = splitDataBasedOnAttribute(instances, splitAttribute);
-                successors = new MyID3[splitAttribute.numValues()];
+                successors = new MyJ48[splitAttribute.numValues()];
                 for (int j = 0; j < splitAttribute.numValues(); j++) {
-                    successors[j] = new MyID3();
+                    successors[j] = new MyJ48();
                     successors[j].makeTree(splitData[j]);
                 }
             }
@@ -218,6 +218,8 @@ public class MyJ48 extends Classifier {
     private double computeGainRatio(Instances data, Attribute attribute) throws Exception{
         double IG = computeIG(data, attribute);
         double IV = computeIntrinsicValue(data, attribute);
+        if(IG == 0 || IV == 0)
+            return 0;
         return IG/IV;
     }
 

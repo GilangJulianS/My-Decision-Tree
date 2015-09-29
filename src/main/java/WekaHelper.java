@@ -100,7 +100,6 @@ public class WekaHelper {
         for (int i = 0; i < labeledData.numInstances(); i++) {
             double clsLabel = classifier.classifyInstance(data.instance(i));
             labeledData.instance(i).setClassValue(clsLabel);
-            System.out.println(labeledData.instance(i));
         }
         return labeledData;
     }

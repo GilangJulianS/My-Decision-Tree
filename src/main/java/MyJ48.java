@@ -13,7 +13,7 @@ import static weka.core.Utils.log2;
  */
 public class MyJ48 extends Classifier {
 
-    private MyID3[] successors;
+    private MyJ48[] successors;
     private Attribute splitAttribute;
     private double classValue;
     private double[] classDistribution;
@@ -47,6 +47,9 @@ public class MyJ48 extends Classifier {
     }
 
     public void makeTree(Instances instances) throws Exception {
+        // instance dihapus dulu semua atribut yang tidak signifikan
+        instances = prePruning(instances);
+
         // Mengecek ada tidaknya instance yang mencapai node ini
         if (instances.numInstances() == 0) {
             splitAttribute = null;
@@ -79,12 +82,40 @@ public class MyJ48 extends Classifier {
                 classAttribute = instances.classAttribute();
             } else {
                 Instances[] splitData = splitDataBasedOnAttribute(instances, splitAttribute);
-                successors = new MyID3[splitAttribute.numValues()];
+                successors = new MyJ48[splitAttribute.numValues()];
                 for (int j = 0; j < splitAttribute.numValues(); j++) {
-                    successors[j] = new MyID3();
+                    successors[j] = new MyJ48();
                     successors[j].makeTree(splitData[j]);
                 }
             }
+        }
+    }
+
+    protected Instances prePruning(Instances instances) throws Exception {
+        ArrayList<Integer> unsignificantAttributes = new ArrayList<>();
+        Enumeration attEnum = instances.enumerateAttributes();
+        while (attEnum.hasMoreElements()) {
+            double currentGainRatio;
+            Attribute att = (Attribute) attEnum.nextElement();
+            currentGainRatio = computeGainRatio(instances, att);
+            if (currentGainRatio < 1) {
+                unsignificantAttributes.add(att.index() + 1);
+            }
+        }
+        if (unsignificantAttributes.size() > 0) {
+            StringBuilder unsignificant = new StringBuilder();
+            int i = 0;
+            for (Integer current : unsignificantAttributes) {
+                unsignificant.append(current.toString());
+                if (i != unsignificantAttributes.size()-1) {
+                    unsignificant.append(",");
+                }
+                i++;
+            }
+//            System.out.println("remove : " + unsignificant.toString());
+            return WekaHelper.removeAttribute(instances, unsignificant.toString());
+        } else {
+            return instances;
         }
     }
 
@@ -218,6 +249,9 @@ public class MyJ48 extends Classifier {
     private double computeGainRatio(Instances data, Attribute attribute) throws Exception{
         double IG = computeIG(data, attribute);
         double IV = computeIntrinsicValue(data, attribute);
+        if(IG == 0 || IV == 0)
+            return 0;
+//        System.out.println("gain ratio " + IG / IV);
         return IG/IV;
     }
 
@@ -259,6 +293,7 @@ public class MyJ48 extends Classifier {
                 missingCount++;
             }
         }
+        //System.out.println("IG" + IG * (instances.numInstances() - missingCount / instances.numInstances()));
         return IG * (instances.numInstances() - missingCount / instances.numInstances());
     }
 

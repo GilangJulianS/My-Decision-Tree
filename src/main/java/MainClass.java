@@ -18,6 +18,7 @@ public class MainClass {
         String dataFile = null;
         String testFile = null;
         String modelName;
+        boolean prune = false;
         Classifier classifier = null;
         int algorithm = -1;
         int mode = -1;
@@ -28,17 +29,17 @@ public class MainClass {
                 dataFile = args[i+1];
             }else if(args[i].equals("-al")){
                 if(args[i+1].equals("bayes")){
-                    algorithm = WekaHelper.BAYES;
+                    algorithm = WekaIFace.BAYES;
                 }else if(args[i+1].equals("id3")){
-                    algorithm = WekaHelper.ID3;
+                    algorithm = WekaIFace.ID3;
                 }else if(args[i+1].equals("j48")){
-                    algorithm = WekaHelper.J48;
+                    algorithm = WekaIFace.J48;
                 }else if(args[i+1].equals("mybayes")){
-                    algorithm = WekaHelper.MY_BAYES;
+                    algorithm = WekaIFace.MY_BAYES;
                 }else if(args[i+1].equals("myid3")){
-                    algorithm = WekaHelper.MY_ID3;
+                    algorithm = WekaIFace.MY_ID3;
                 }else if(args[i+1].equals("myj48")){
-                    algorithm = WekaHelper.MY_J48;
+                    algorithm = WekaIFace.MY_J48;
                 }
             }else if(args[i].equals("-mode")){
                 if(args[i+1].equals("train")){
@@ -54,37 +55,39 @@ public class MainClass {
                 testFile = args[i+1];
             }else if(args[i].equals("-model")){
                 try {
-                    classifier = WekaHelper.loadModel(args[i+1]);
+                    classifier = WekaIFace.loadModel(args[i + 1]);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }else if(args[i].equals("-prune")){
+                prune = true;
             }
         }
         try {
             if (mode == MainClass.MODE_TRAIN) {
-                Instances data = WekaHelper.readArff(dataFile);
-                classifier = WekaHelper.buildClassifier(data, algorithm);
-                WekaHelper.saveModel(dataFile.replace(".arff", ".model"), classifier);
+                Instances data = WekaIFace.readArff(dataFile);
+                classifier = WekaIFace.buildClassifier(data, algorithm, prune);
+                WekaIFace.saveModel(dataFile.replace(".arff", ".model"), classifier);
             } else if (mode == MainClass.MODE_CLASSIFY) {
-                Instances dataTest = WekaHelper.readArff(testFile);
-                Instances classifiedInstances = WekaHelper.classifyInstances(classifier, dataTest);
+                Instances dataTest = WekaIFace.readArff(testFile);
+                Instances classifiedInstances = WekaIFace.classifyInstances(classifier, dataTest);
             } else if (mode == MainClass.MODE_CROSS_VALIDATE) {
-                Instances data = WekaHelper.readArff(dataFile);
-                WekaHelper.crossValidate(data, classifier);
+                Instances data = WekaIFace.readArff(dataFile);
+                WekaIFace.crossValidate(data, classifier);
             }else if(mode == MainClass.MODE_EVALUATE_SPLIT){
-                Instances data = WekaHelper.readArff(dataFile);
-                WekaHelper.evaluateSplit(data, classifier, 30);
+                Instances data = WekaIFace.readArff(dataFile);
+                WekaIFace.evaluateSplit(data, classifier, 30);
             }
 
-            debugMode();
+//            debugMode();
         }catch(Exception e){
             e.printStackTrace();
         }
     }
 
     public static void debugMode() throws Exception {
-        Instances data = WekaHelper.readArff("data/cpu.arff");
-        Classifier classifier = WekaHelper.buildClassifier(data, WekaHelper.MY_J48);
-        WekaHelper.crossValidate(data, classifier);
+        Instances data = WekaIFace.readArff("data/cpu.arff");
+        Classifier classifier = WekaIFace.buildClassifier(data, WekaIFace.MY_J48, false);
+        WekaIFace.crossValidate(data, classifier);
     }
 }

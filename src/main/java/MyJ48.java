@@ -18,6 +18,11 @@ public class MyJ48 extends Classifier {
     private double classValue;
     private double[] classDistribution;
     private Attribute classAttribute;
+    private boolean prune;
+
+    public void enablePrune(boolean enable){
+        prune = enable;
+    }
 
     @Override
     public Capabilities getCapabilities() {
@@ -40,15 +45,16 @@ public class MyJ48 extends Classifier {
         // Mengecek dapatkah classifier menghandle data
         getCapabilities().testWithFail(instances);
 
-        // menghapus instance dengan missing class atau missing value
+        // menghapus instance dengan missing class
         instances.deleteWithMissingClass();
         Instances nominalInstances = toNominal(instances);
         makeTree(nominalInstances);
     }
 
     public void makeTree(Instances instances) throws Exception {
-        // instance dihapus dulu semua atribut yang tidak signifikan
-        instances = prePruning(instances);
+        // delete unsignificant attribute
+        if(prune)
+            instances = prePruning(instances);
 
         // Mengecek ada tidaknya instance yang mencapai node ini
         if (instances.numInstances() == 0) {
@@ -57,7 +63,7 @@ public class MyJ48 extends Classifier {
             classDistribution = new double[instances.numClasses()];
             return;
         } else {
-            // Mencari IG maksimum dari atribut
+            // Mencari gain ratio maksimum dari atribut
             double[] gainRatio = new double[instances.numAttributes()];
             Enumeration attEnum = instances.enumerateAttributes();
             while (attEnum.hasMoreElements()) {
@@ -66,17 +72,15 @@ public class MyJ48 extends Classifier {
             }
             splitAttribute = instances.attribute(indexWithMaxValue(gainRatio));
 
-            // Jika IG max = 0, buat daun dengan label kelas mayoritas
+            // Jika gain ratio max = 0, buat daun dengan label kelas mayoritas
             // Jika tidak, buat successor
             if (equalValue(gainRatio[splitAttribute.index()], 0)) {
                 splitAttribute = null;
                 classDistribution = new double[instances.numClasses()];
-
                 for (int i = 0; i < instances.numInstances(); i++) {
                     Instance inst = (Instance) instances.instance(i);
                     classDistribution[(int) inst.classValue()]++;
                 }
-
                 normalizeClassDistribution(classDistribution);
                 classValue = indexWithMaxValue(classDistribution);
                 classAttribute = instances.classAttribute();
@@ -112,8 +116,7 @@ public class MyJ48 extends Classifier {
                 }
                 i++;
             }
-//            System.out.println("remove : " + unsignificant.toString());
-            return WekaHelper.removeAttribute(instances, unsignificant.toString());
+            return WekaIFace.removeAttribute(instances, unsignificant.toString());
         } else {
             return instances;
         }
@@ -145,14 +148,9 @@ public class MyJ48 extends Classifier {
                 Instances[] tempInstances = new Instances[dataValues.size() - 1];
                 for (int i = 0; i < dataValues.size() - 1; ++i) {
                     tempInstances[i] = setAttributeThreshold(data, att, dataValues.get(i));
-                    try {
-                        infoGains[i] = computeIG(tempInstances[i], tempInstances[i].attribute(att.name()));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    infoGains[i] = computeIG(tempInstances[i], tempInstances[i].attribute(att.name()));
                 }
                 data = new Instances(tempInstances[indexWithMaxValue(infoGains)]);
-
             }
         }
         return data;
@@ -166,16 +164,16 @@ public class MyJ48 extends Classifier {
         filter.setAttributeIndex(String.valueOf(att.index() + 2));
         filter.setNominalLabels("<=" + threshold + ",>" + threshold);
         filter.setInputFormat(temp);
+
         Instances thresholdedData = Filter.useFilter(data, filter);
 
         for (int i=0; i<thresholdedData.numInstances(); i++) {
-            if ((int) thresholdedData.instance(i).value(thresholdedData.attribute(att.name())) <= threshold) {
+            if ((int) thresholdedData.instance(i).value(thresholdedData.attribute(att.name())) <= threshold)
                 thresholdedData.instance(i).setValue(thresholdedData.attribute("thresholded " + att.name()), "<=" + threshold);
-            } else {
+            else
                 thresholdedData.instance(i).setValue(thresholdedData.attribute("thresholded " + att.name()), ">" + threshold);
-            }
         }
-        thresholdedData = WekaHelper.removeAttribute(thresholdedData, String.valueOf(att.index() + 1));
+        thresholdedData = WekaIFace.removeAttribute(thresholdedData, String.valueOf(att.index() + 1));
         thresholdedData.renameAttribute(thresholdedData.attribute("thresholded " + att.name()), att.name());
         return thresholdedData;
     }
@@ -183,33 +181,21 @@ public class MyJ48 extends Classifier {
     @Override
     public double classifyInstance(Instance instance)
             throws NoSupportForMissingValuesException {
-        System.out.println(instance);
-        if (instance.hasMissingValue()) {
-            throw new NoSupportForMissingValuesException("MyID3: This classifier can not handle missing value");
-        }
-        if (splitAttribute == null) {
-            return classValue;
-        } else {
-            return successors[(int) instance.value(splitAttribute)].
-                    classifyInstance(instance);
-        }
+        if (instance.hasMissingValue()) throw new NoSupportForMissingValuesException("MyID3: This classifier can not handle missing value");
+        if (splitAttribute == null) return classValue;
+        else return successors[(int) instance.value(splitAttribute)].classifyInstance(instance);
     }
 
     @Override
     public double[] distributionForInstance(Instance instance)
             throws NoSupportForMissingValuesException {
-        if (instance.hasMissingValue()) {
-            throw new NoSupportForMissingValuesException("MyID3: Cannot handle missing values");
-        }
-        if (splitAttribute == null) {
-            return classDistribution;
-        } else {
+        if (instance.hasMissingValue()) throw new NoSupportForMissingValuesException("MyID3: Cannot handle missing values");
+        if (splitAttribute == null) return classDistribution;
+        else {
             if(splitAttribute.value(0).contains("<=")){
                 int threshold = Integer.valueOf(splitAttribute.value(0).substring(2, 3));
-                if(instance.value(splitAttribute) > threshold)
-                    return successors[1].distributionForInstance(instance);
-                else
-                    return successors[0].distributionForInstance(instance);
+                if(instance.value(splitAttribute) > threshold) return successors[1].distributionForInstance(instance);
+                else return successors[0].distributionForInstance(instance);
             }
             return successors[(int) instance.value(splitAttribute)].
                     distributionForInstance(instance);
@@ -218,31 +204,27 @@ public class MyJ48 extends Classifier {
 
     private void normalizeClassDistribution(double[] array) {
         double sum = 0;
-        for (double d : array) {
-            sum += d;
-        }
-
+        for (double d : array) sum += d;
         if (!Double.isNaN(sum) && sum != 0) {
-            for (int i = 0; i < array.length; ++i) {
+            for (int i = 0; i < array.length; ++i)
                 array[i] /= sum;
-            }
         }
     }
 
     private Instances[] splitDataBasedOnAttribute(Instances instances, Attribute attribute) {
         Instances[] splittedData = new Instances[attribute.numValues()];
-        for (int j = 0; j < attribute.numValues(); j++) {
+
+        for (int j = 0; j < attribute.numValues(); j++)
             splittedData[j] = new Instances(instances, instances.numInstances());
-        }
 
         for (int i = 0; i < instances.numInstances(); i++) {
             int attValue = (int) instances.instance(i).value(attribute);
             splittedData[attValue].add(instances.instance(i));
         }
 
-        for (Instances currentSplitData : splittedData) {
+        for (Instances currentSplitData : splittedData)
             currentSplitData.compactify();
-        }
+
         return splittedData;
     }
 
@@ -298,9 +280,8 @@ public class MyJ48 extends Classifier {
 
     private double computeE(Instances instances) throws Exception {
         double[] labelCounts = new double[instances.numClasses()];
-        for (int i = 0; i < instances.numInstances(); ++i) {
+        for (int i = 0; i < instances.numInstances(); ++i)
             labelCounts[(int) instances.instance(i).classValue()]++;
-        }
 
         double entropy = 0;
         for (int i = 0; i < labelCounts.length; i++) {
@@ -318,16 +299,16 @@ public class MyJ48 extends Classifier {
 
     protected static int indexWithMaxValue(double[] array) {
         double max = 0;
-        int index = 0;
+        int idx = 0;
 
         if (array.length > 0) {
             for (int i = 0; i < array.length; ++i) {
                 if (array[i] > max) {
                     max = array[i];
-                    index = i;
+                    idx = i;
                 }
             }
-            return index;
+            return idx;
         } else {
             return -1;
         }
@@ -337,7 +318,7 @@ public class MyJ48 extends Classifier {
     public String toString() {
 
         if ((classDistribution == null) && (successors == null)) {
-            return "MyID3: No model built yet.";
+            return "MyID3: No model";
         }
         return "MyID3\n\n" + treeToString(0);
     }
@@ -346,17 +327,15 @@ public class MyJ48 extends Classifier {
         StringBuilder text = new StringBuilder();
 
         if (splitAttribute == null) {
-            if (Instance.isMissingValue(classValue)) {
+            if (Instance.isMissingValue(classValue))
                 text.append(": null");
-            } else {
+            else
                 text.append(": ").append(classAttribute.value((int) classValue));
-            }
         } else {
             for (int j = 0; j < splitAttribute.numValues(); j++) {
                 text.append("\n");
-                for (int i = 0; i < level; i++) {
+                for (int i = 0; i < level; i++)
                     text.append("|  ");
-                }
                 text.append(splitAttribute.name()).append(" = ").append(splitAttribute.value(j));
                 text.append(successors[j].treeToString(level + 1));
             }

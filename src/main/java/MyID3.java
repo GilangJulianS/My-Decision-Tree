@@ -91,11 +91,9 @@ public class MyID3 extends Classifier {
         for (int n=0; n<data.numAttributes(); n++) {
             Attribute att = data.attribute(n);
             if (data.attribute(n).isNumeric()) {
-
                 HashSet<Integer> uniqueValues = new HashSet();
-                for (int i = 0; i < data.numInstances(); ++i) {
+                for (int i = 0; i < data.numInstances(); ++i)
                     uniqueValues.add((int) (data.instance(i).value(att)));
-                }
 
                 List<Integer> dataValues = new ArrayList<Integer>(uniqueValues);
                 dataValues.sort(new Comparator<Integer>() {
@@ -113,14 +111,9 @@ public class MyID3 extends Classifier {
                 Instances[] tempInstances = new Instances[dataValues.size() - 1];
                 for (int i = 0; i < dataValues.size() - 1; ++i) {
                     tempInstances[i] = setAttributeThreshold(data, att, dataValues.get(i));
-                    try {
-                        infoGains[i] = computeIG(tempInstances[i], tempInstances[i].attribute(att.name()));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    infoGains[i] = computeIG(tempInstances[i], tempInstances[i].attribute(att.name()));
                 }
                 data = new Instances(tempInstances[indexWithMaxValue(infoGains)]);
-
             }
         }
         return data;
@@ -137,13 +130,12 @@ public class MyID3 extends Classifier {
         Instances thresholdedData = Filter.useFilter(data, filter);
 
         for (int i=0; i<thresholdedData.numInstances(); i++) {
-            if ((int) thresholdedData.instance(i).value(thresholdedData.attribute(att.name())) <= threshold) {
+            if ((int) thresholdedData.instance(i).value(thresholdedData.attribute(att.name())) <= threshold)
                 thresholdedData.instance(i).setValue(thresholdedData.attribute("thresholded " + att.name()), "<=" + threshold);
-            } else {
+            else
                 thresholdedData.instance(i).setValue(thresholdedData.attribute("thresholded " + att.name()), ">" + threshold);
-            }
         }
-        thresholdedData = WekaHelper.removeAttribute(thresholdedData, String.valueOf(att.index() + 1));
+        thresholdedData = WekaIFace.removeAttribute(thresholdedData, String.valueOf(att.index() + 1));
         thresholdedData.renameAttribute(thresholdedData.attribute("thresholded " + att.name()), att.name());
         return thresholdedData;
     }
@@ -152,26 +144,22 @@ public class MyID3 extends Classifier {
     public double classifyInstance(Instance instance)
             throws NoSupportForMissingValuesException {
         System.out.println(instance);
-        if (instance.hasMissingValue()) {
+        if (instance.hasMissingValue())
             throw new NoSupportForMissingValuesException("MyID3: This classifier can not handle missing value");
-        }
-        if (splitAttribute == null) {
+        if (splitAttribute == null)
             return classValue;
-        } else {
-            return successors[(int) instance.value(splitAttribute)].
-                    classifyInstance(instance);
-        }
+        else
+            return successors[(int) instance.value(splitAttribute)].classifyInstance(instance);
     }
 
     @Override
     public double[] distributionForInstance(Instance instance)
             throws NoSupportForMissingValuesException {
-        if (instance.hasMissingValue()) {
+        if (instance.hasMissingValue())
             throw new NoSupportForMissingValuesException("MyID3: Cannot handle missing values");
-        }
-        if (splitAttribute == null) {
+        if (splitAttribute == null)
             return classDistribution;
-        } else {
+        else {
             if(splitAttribute.value(0).contains("<=")){
                 int threshold = Integer.valueOf(splitAttribute.value(0).substring(2, 3));
                 if(instance.value(splitAttribute) > threshold)
@@ -179,38 +167,33 @@ public class MyID3 extends Classifier {
                 else
                     return successors[0].distributionForInstance(instance);
             }
-            return successors[(int) instance.value(splitAttribute)].
-                    distributionForInstance(instance);
+            return successors[(int) instance.value(splitAttribute)].distributionForInstance(instance);
         }
     }
 
     private void normalizeClassDistribution(double[] array) {
         double sum = 0;
-        for (double d : array) {
+        for (double d : array)
             sum += d;
-        }
 
         if (!Double.isNaN(sum) && sum != 0) {
-            for (int i = 0; i < array.length; ++i) {
+            for (int i = 0; i < array.length; ++i)
                 array[i] /= sum;
-            }
         }
     }
 
     private static Instances[] splitDataBasedOnAttribute(Instances instances, Attribute attribute) {
         Instances[] splittedData = new Instances[attribute.numValues()];
-        for (int j = 0; j < attribute.numValues(); j++) {
+        for (int j = 0; j < attribute.numValues(); j++)
             splittedData[j] = new Instances(instances, instances.numInstances());
-        }
 
         for (int i = 0; i < instances.numInstances(); i++) {
             int attValue = (int) instances.instance(i).value(attribute);
             splittedData[attValue].add(instances.instance(i));
         }
 
-        for (Instances currentSplitData : splittedData) {
+        for (Instances currentSplitData : splittedData)
             currentSplitData.compactify();
-        }
         return splittedData;
     }
 
@@ -230,9 +213,8 @@ public class MyID3 extends Classifier {
 
     private static double computeE(Instances instances) throws Exception {
         double[] labelCounts = new double[instances.numClasses()];
-        for (int i = 0; i < instances.numInstances(); ++i) {
+        for (int i = 0; i < instances.numInstances(); ++i)
             labelCounts[(int) instances.instance(i).classValue()]++;
-        }
 
         double entropy = 0;
         for (int i = 0; i < labelCounts.length; i++) {

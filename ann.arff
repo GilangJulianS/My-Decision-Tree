@@ -1,0 +1,12 @@
+@relation test
+
+@attribute a1 numeric
+@attribute a2 numeric
+@attribute a3 numeric
+@attribute a4 numeric
+@attribute class numeric
+
+@data
+1,1,0,1,-1
+1,0,-1,-1,1
+1,-1,-0.5,-1,1

@@ -1,3 +1,8 @@
+package support;
+
+import classifier.MyANN;
+import classifier.MyID3;
+import classifier.MyJ48;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
@@ -23,6 +28,7 @@ public class WekaIFace {
     public static final int MY_BAYES = 3;
     public static final int MY_ID3 = 4;
     public static final int MY_J48 = 5;
+    public static final int MY_ANN = 6;
 
     public static Instances readArff(String fileName) throws Exception {
         // read file
@@ -67,6 +73,9 @@ public class WekaIFace {
         }else if(classifierType == MY_J48){
             classifier = new MyJ48();
             ((MyJ48)classifier).enablePrune(prune);
+            classifier.buildClassifier(data);
+        }else if(classifierType == MY_ANN){
+            classifier = new MyANN(MyANN.MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.1d, 0d, 10, 0.01d);
             classifier.buildClassifier(data);
         }
         return classifier;

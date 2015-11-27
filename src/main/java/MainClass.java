@@ -1,3 +1,4 @@
+import support.WekaIFace;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
@@ -40,6 +41,8 @@ public class MainClass {
                     algorithm = WekaIFace.MY_ID3;
                 }else if(args[i+1].equals("myj48")){
                     algorithm = WekaIFace.MY_J48;
+                }else if(args[i+1].equals("ann")){
+                    algorithm = WekaIFace.MY_ANN;
                 }
             }else if(args[i].equals("-mode")){
                 if(args[i+1].equals("train")){

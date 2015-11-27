@@ -20,6 +20,7 @@ public class Neuron implements Serializable{
     private static int functionType;
     private static double learningRate;
     private static double momentum;
+    private double errorOutput;
     private double output;
     private double error;
     private Random r;
@@ -29,6 +30,7 @@ public class Neuron implements Serializable{
         inputsWeight = new ArrayList<>();
         error = 0;
         output = 0;
+        errorOutput = 0;
         r = new Random();
     }
 
@@ -101,17 +103,13 @@ public class Neuron implements Serializable{
         return error;
     }
 
-    public void updateWeight(boolean isLastLayer){
+    public void updateWeight(){
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron n = inputsNeuron.get(i);
-            if(isLastLayer) {
-                n.setError(inputsWeight.get(i) * error);
-            }else{
-                n.setError(inputsWeight.get(i) * error + n.getError());
-            }
+            n.setError(inputsWeight.get(i) * error + n.getError());
             double newWeight = inputsWeight.get(i) + (error * learningRate * n.getOutput());
             inputsWeight.set(i, newWeight);
-            System.out.println(newWeight + " " + error);
+//            System.out.println(newWeight + " " + error);
         }
     }
 
@@ -120,12 +118,14 @@ public class Neuron implements Serializable{
             Neuron n = inputsNeuron.get(i);
             double newWeight = inputsWeight.get(i) + (error * learningRate * n.getOutput());
             inputsWeight.set(i, newWeight);
+            n.setError(inputsWeight.get(i) * error);
         }
     }
 
     public void reset(){
         output = 0;
         error = 0;
+        errorOutput = 0;
     }
 
     public void resetInput(){

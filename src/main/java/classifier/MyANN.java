@@ -83,7 +83,7 @@ public class MyANN extends Classifier {
     @Override
     public void buildClassifier(Instances instances) throws Exception {
         initStructure();
-//        printPerceptron();
+        printPerceptron();
         iteration = 0;
         for(int i=0; i<instances.numInstances(); i++){
             targetOutputs.add(instances.instance(i).classValue());
@@ -156,15 +156,13 @@ public class MyANN extends Classifier {
         System.out.println(output + " " + target + " " + errorOutput);
         outputNeuron.setError(errorOutput);
         outputNeuron.updateOutputWeight();
-        for(int j=0; j<outputNeuron.getWeights().size(); j++){
-            System.out.println("weight " + outputNeuron.getWeights().get(j));
-        }
+//        for(int j=0; j<outputNeuron.getWeights().size(); j++){
+//            System.out.println("weight " + outputNeuron.getWeights().get(j));
+//        }
 
         for(int i=layers.size()-2; i>=0; i--){
-            boolean isLastLayer;
-            isLastLayer = (i == layers.size() - 2);
             for(Neuron n : layers.get(i).neurons){
-                n.updateWeight(isLastLayer);
+                n.updateWeight();
 //                for(int j=0; j<n.getWeights().size(); j++){
 //                    System.out.println("weight " + n.getWeights().get(j));
 //                }

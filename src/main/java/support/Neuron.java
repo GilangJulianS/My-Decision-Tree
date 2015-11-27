@@ -58,9 +58,9 @@ public class Neuron implements Serializable{
         inputsNeuron.addAll(inputs);
     }
 
-    public void initWeight(){
+    public void initWeight(int inputNum){
         inputsWeight = new ArrayList<>();
-        for(int i=0; i<inputsNeuron.size(); i++) {
+        for(int i=0; i<inputNum; i++) {
             if (initialWeight == MyANN.RANDOM_WEIGHT) {
                 inputsWeight.add(r.nextDouble());
             } else {
@@ -78,7 +78,7 @@ public class Neuron implements Serializable{
         for(int i=0; i<inputsNeuron.size(); i++){
 //            System.out.print("input " + inputsNeuron.get(i).getOutput() + " ");
         }
-        System.out.println();
+//        System.out.println();
         if (functionType == MyANN.FUNCTION_SIGMOID) {
             output = Util.sigmoid(net);
         }else if(functionType == MyANN.FUNCTION_SIGN){
@@ -103,6 +103,7 @@ public class Neuron implements Serializable{
         return error;
     }
 
+    /* Update input's weight. Used for any neurons except for output neuron */
     public void updateWeight(){
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron n = inputsNeuron.get(i);
@@ -113,6 +114,7 @@ public class Neuron implements Serializable{
         }
     }
 
+    /* Update input's weight. Used only for output neuron */
     public void updateOutputWeight(){
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron n = inputsNeuron.get(i);
@@ -122,12 +124,14 @@ public class Neuron implements Serializable{
         }
     }
 
+    /* Reset this neuron output value, error, and nextNeuron output for computing next instance */
     public void reset(){
         output = 0;
         error = 0;
         errorOutput = 0;
     }
 
+    /* Reset this neuron inputs. Used only for first layer neuron */
     public void resetInput(){
         inputsNeuron = new ArrayList<>();
     }

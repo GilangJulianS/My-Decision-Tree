@@ -82,7 +82,7 @@ public class MyANN extends Classifier {
 
     @Override
     public void buildClassifier(Instances instances) throws Exception {
-        initStructure();
+        initStructure(instances.numAttributes()-1);
         printPerceptron();
         iteration = 0;
         for(int i=0; i<instances.numInstances(); i++){
@@ -100,7 +100,6 @@ public class MyANN extends Classifier {
                 if(iteration >= maxIteration)
                     break;
 
-            outputs = new ArrayList<>();
             //satu epoch
             for(int i=0; i<instances.numInstances(); i++){
                 computeForward(instances.instance(i));
@@ -108,19 +107,29 @@ public class MyANN extends Classifier {
 //                System.out.println("output " + layers.get(layers.size()-1).getOutput());
 
                 backProp(instances.instance(i));
-                outputs.add(layers.get(layers.size()-1).getOutput());
                 //reset neuron
-                for(NeuronLayer nl : layers){
-                    for(Neuron n : nl.neurons){
-                        n.reset();
-                    }
-                }
-                for(Neuron n : layers.get(0).neurons){
-                    n.resetInput();
-                }
+                resetNeurons();
+            }
+            //recomputing outputs
+            outputs = new ArrayList<>();
+            for(int i=0; i<instances.numInstances(); i++){
+                computeForward(instances.instance(i));
+                outputs.add(layers.get(layers.size()-1).getOutput());
+                resetNeurons();
             }
             mse = Util.MSE(targetOutputs, outputs);
             iteration++;
+        }
+    }
+
+    public void resetNeurons(){
+        for(NeuronLayer nl : layers){
+            for(Neuron n : nl.neurons){
+                n.reset();
+            }
+        }
+        for(Neuron n : layers.get(0).neurons){
+            n.resetInput();
         }
     }
 
@@ -132,7 +141,6 @@ public class MyANN extends Classifier {
         }
         for(Neuron n : layers.get(0).neurons){
             n.addInputs(inputs);
-            n.initWeight();
         }
         for(NeuronLayer layer : layers){
             for (Neuron n : layer.neurons) {
@@ -170,7 +178,7 @@ public class MyANN extends Classifier {
         }
     }
 
-    public void initStructure(){
+    public void initStructure(int numAttribute){
         Neuron.setInitialWeight(initialWeight);
         Neuron.setMode(mode);
         Neuron.setActivationFunction(functionType);
@@ -190,11 +198,13 @@ public class MyANN extends Classifier {
                 neurons.add(new Neuron());
             }
             layers.add(new NeuronLayer(neurons));
-
-            if(i>0) {
-                for (Neuron n : neurons) {
+            for (Neuron n : neurons) {
+                if(i>0) {
                     n.addInputs(layers.get(i - 1).neurons);
-                    n.initWeight();
+                    n.initWeight(layers.get(i - 1).neurons.size());
+                    System.out.println(layers.get(i - 1).neurons.size());
+                }else{
+                    n.initWeight(numAttribute);
                 }
             }
         }

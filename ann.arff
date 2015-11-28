@@ -4,7 +4,7 @@
 @attribute a2 numeric
 @attribute a3 numeric
 @attribute a4 numeric
-@attribute class numeric
+@attribute class {-1,1}
 
 @data
 1,1,0,1,-1

@@ -133,7 +133,9 @@ public class Neuron implements Serializable{
 
     /* Reset this neuron inputs. Used only for first layer neuron */
     public void resetInput(){
+        Neuron bias  = inputsNeuron.get(0);
         inputsNeuron = new ArrayList<>();
+        inputsNeuron.add(bias);
     }
 
     public List<Double> getWeights(){

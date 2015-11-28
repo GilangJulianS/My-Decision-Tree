@@ -90,7 +90,9 @@ public class MyANN extends Classifier {
 //            System.out.println(instances.instance(i).classValue());
         }
         while(true){
-            System.out.println(mse + " " + iteration);
+            if(iteration % 1000000 == 0)
+                System.out.println(mse + " " + iteration);
+
             if(mseThreshold == -1 && maxIteration == -1)
                 break;
             if(mseThreshold != -1)
@@ -104,9 +106,20 @@ public class MyANN extends Classifier {
             for(int i=0; i<instances.numInstances(); i++){
                 computeForward(instances.instance(i));
 
-//                System.out.println("output " + layers.get(layers.size()-1).getOutput());
+                if(iteration % 1000000 == 0)
+                    System.out.println("output - target " + layers.get(layers.size()-1).getOutput() + " " + targetOutputs.get(i));
 
                 backProp(instances.instance(i));
+                //print weight
+//                for(int j=0; j< layers.size(); j++){
+//                    for(Neuron n : layers.get(j).neurons){
+//                        System.out.println("error " + n.getError());
+//                        for(double d : n.getWeights()){
+//                            System.out.println("weight " + d);
+//                        }
+//                    }
+//                }
+
                 //reset neuron
                 resetNeurons();
             }
@@ -147,12 +160,6 @@ public class MyANN extends Classifier {
                 n.computeOutput();
             }
         }
-        for(NeuronLayer layer : layers){
-            for (Neuron n : layer.neurons) {
-//                System.out.print(n.getOutput() + " ");
-            }
-//            System.out.println();
-        }
     }
 
     public void backProp(Instance instance){
@@ -161,7 +168,7 @@ public class MyANN extends Classifier {
         double output = outputNeuron.getOutput();
         double errorOutput = Util.errorOutput(output, target);
 
-        System.out.println(output + " " + target + " " + errorOutput);
+//        System.out.println(output + " " + target + " " + errorOutput);
         outputNeuron.setError(errorOutput);
         outputNeuron.updateOutputWeight();
 //        for(int j=0; j<outputNeuron.getWeights().size(); j++){

@@ -107,9 +107,9 @@ public class Neuron implements Serializable{
     public void updateWeight(){
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron n = inputsNeuron.get(i);
-            n.setError((n.getOutput() * (1-n.getOutput()) * inputsWeight.get(i) * error) + n.getError());
             double newWeight = inputsWeight.get(i) + (error * learningRate * n.getOutput());
             inputsWeight.set(i, newWeight);
+            n.setError((n.getOutput() * (1-n.getOutput()) * inputsWeight.get(i) * error) + n.getError());
 //            System.out.println(newWeight + " " + error);
         }
     }
@@ -118,9 +118,9 @@ public class Neuron implements Serializable{
     public void updateOutputWeight(){
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron n = inputsNeuron.get(i);
-            n.setError(n.getOutput() * (1-n.getOutput()) * inputsWeight.get(i) * error);
             double newWeight = inputsWeight.get(i) + (error * learningRate * n.getOutput());
             inputsWeight.set(i, newWeight);
+            n.setError(n.getOutput() * (1-n.getOutput()) * inputsWeight.get(i) * error);
         }
     }
 

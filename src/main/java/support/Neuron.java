@@ -180,20 +180,50 @@ public class Neuron implements Serializable{
         return deltaWeights;
     }
 
-    public void updateWeightSingleLayer (double targetOutput) {
+    public void updateWeightSingleLayer (double targetOutput, int instanceNumber) {
 //        System.out.println("inputneuron: " + inputsNeuron.size());
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron inputNeuron = inputsNeuron.get(i);
-            double newWeight = inputsWeight.get(i) + Util.deltaWeight(learningRate, targetOutput, output, inputNeuron.getOutput());
+
+            // find dw
+            double prevDW = 0;
+            if (momentum != 0) {
+                if (inputNeuron.prevEpochDeltaWeight.get(instanceNumber).containsKey(this.id)) {
+                    prevDW = inputNeuron.prevEpochDeltaWeight.get(instanceNumber).get(this.id);
+                }
+            }
+            double deltaWeight = Util.deltaWeight(learningRate, targetOutput, output, inputNeuron.getOutput()) + momentum * prevDW;
+
+            // save deltaweight for prevdeltaweight in next iteration
+            HashMap<Integer, Double> currentWeight = new HashMap<>();
+            currentWeight.put(this.id, deltaWeight);
+            inputNeuron.prevEpochDeltaWeight.set(instanceNumber, currentWeight);
+
+            double newWeight = inputsWeight.get(i) + deltaWeight;
 //            System.out.println("learningRate: " + learningRate + " targetoutput: " + targetOutput + " output: " + output + " inputNeuron : " + inputNeuron.getOutput());
 //            System.out.println("deltaWeight " + Util.deltaWeight(learningRate, targetOutput, output, inputNeuron.getOutput()));
             inputsWeight.set(i, newWeight);
         }
     }
 
-    public void updateWeightCumulative(List<Double> deltaWeights) {
+    public void updateWeightCumulative(List<Double> deltaWeights, int instanceNumber) {
         for (int i=0; i<inputsNeuron.size(); i++) {
-            double newWeight = inputsWeight.get(i) + deltaWeights.get(i);
+            Neuron inputNeuron = inputsNeuron.get(i);
+            // find dw
+            double prevDW = 0;
+            if (momentum != 0) {
+                if (inputNeuron.prevEpochDeltaWeight.get(instanceNumber).containsKey(this.id)) {
+                    prevDW = inputNeuron.prevEpochDeltaWeight.get(instanceNumber).get(this.id);
+                }
+            }
+            double deltaWeight = deltaWeights.get(i) + momentum * prevDW;
+
+            // save deltaweight for prevdeltaweight in next iteration
+            HashMap<Integer, Double> currentWeight = new HashMap<>();
+            currentWeight.put(this.id, deltaWeight);
+            inputNeuron.prevEpochDeltaWeight.set(instanceNumber, currentWeight);
+
+            double newWeight = inputsWeight.get(i) + deltaWeight;
             inputsWeight.set(i, newWeight);
         }
     }

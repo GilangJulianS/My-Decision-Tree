@@ -16,7 +16,7 @@ import java.util.List;
 public class DeltaRuleBatch extends Classifier{
     public static final int MODE_BATCH_GRADIENT_DESCENT = 102;
     public static final int FUNCTION_TYPE_3 = 102;
-    Neuron outputNeuron = new Neuron();
+    Neuron outputNeuron;
     private List<Double> targetOutputs;
     private List<Double> outputs;
     private List<Double> deltaWeights;
@@ -27,6 +27,7 @@ public class DeltaRuleBatch extends Classifier{
     private int iteration;
     private int maxIteration;
     private double mseThreshold;
+    private int numInstance;
 
     public DeltaRuleBatch(double initialWeight, double learningRate, double momentum, int maxIteration, double mseThreshold) {
         this.initialWeight = initialWeight;
@@ -60,7 +61,9 @@ public class DeltaRuleBatch extends Classifier{
     }
     @Override
     public void buildClassifier(Instances instances) throws Exception {
-        initStructure(instances.numAttributes()-1);
+        numInstance = instances.numInstances();
+        outputNeuron = new Neuron(numInstance);
+        initStructure(instances.numAttributes() - 1);
         iteration=0;
 
         for(int i=0; i<instances.numInstances(); i++) {
@@ -102,7 +105,7 @@ public class DeltaRuleBatch extends Classifier{
                 }
 
                 if (i == instances.numInstances()-1) {
-                    outputNeuron.updateWeightCumulative(deltaWeights);
+                    outputNeuron.updateWeightCumulative(deltaWeights, i);
                 }
                 outputNeuron.resetInput();
                 outputNeuron.reset();
@@ -124,10 +127,15 @@ public class DeltaRuleBatch extends Classifier{
     public void computeForward(Instance instance) throws Exception {
         List<Neuron> inputs = new ArrayList<>();
         for(int i=0; i<instance.numAttributes()-1; i++){
-            inputs.add(new Neuron().setOutput(instance.value(i)));
+            inputs.add(new Neuron(numInstance).setOutput(instance.value(i)));
         }
         outputNeuron.addInputs(inputs);
         outputNeuron.computeOutput();
+    }
+
+    public double classifyInstance(Instance instance) {
+
+        return 0;
     }
 
     public void initStructure(int numAttribute) {
@@ -138,7 +146,7 @@ public class DeltaRuleBatch extends Classifier{
         Neuron.setMomentum(momentum);
 
         outputNeuron.initWeight(numAttribute+1);
-        Neuron bias = new Neuron().setOutput(1);
+        Neuron bias = new Neuron(numInstance).setOutput(1);
         outputNeuron.addInput(bias);
     }
 }

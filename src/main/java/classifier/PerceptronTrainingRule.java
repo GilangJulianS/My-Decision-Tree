@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class PerceptronTrainingRule extends Classifier {
     public static final int PERCEPTRON_TRAINING_RULE = 100;
     public static final int FUNCTION_SIGN = 101;
-    Neuron outputNeuron = new Neuron();
+    Neuron outputNeuron;
     private List<Double> targetOutputs;
     private List<Double> outputs;
     private double initialWeight;
@@ -28,6 +28,7 @@ public class PerceptronTrainingRule extends Classifier {
     private int iteration;
     private int maxIteration;
     private double mseThreshold;
+    private int numInstance;
 
     public PerceptronTrainingRule(double initialWeight, double learningRate, double momentum, int maxIteration, double mseThreshold) {
         this.initialWeight = initialWeight;
@@ -35,7 +36,6 @@ public class PerceptronTrainingRule extends Classifier {
         this.momentum = momentum;
         this.maxIteration = maxIteration;
         this.mseThreshold = mseThreshold;
-        targetOutputs = new ArrayList<>();
         mse = Double.POSITIVE_INFINITY;
     }
 
@@ -62,6 +62,9 @@ public class PerceptronTrainingRule extends Classifier {
 
     @Override
     public void buildClassifier(Instances instances) throws Exception {
+        targetOutputs = new ArrayList<>();
+        numInstance = instances.numInstances();
+        outputNeuron = new Neuron(numInstance);
         initStructure(instances);
         iteration=0;
 
@@ -71,7 +74,7 @@ public class PerceptronTrainingRule extends Classifier {
         }
 
         while(true) {
-            if(iteration % 1000000 == 0)
+//            if(iteration % 1000000 == 0)
                 System.out.println(mse + " " + iteration);
 
             if(mseThreshold == -1 && maxIteration == -1)
@@ -88,7 +91,10 @@ public class PerceptronTrainingRule extends Classifier {
 //            int numNeuron;
             for(int i=0; i<instances.numInstances(); i++) {
                 computeForward(instances.instance(i));
-                outputNeuron.updateWeightSingleLayer(targetOutputs.get(i));
+                System.out.println("target i-" + i + ": " + targetOutputs.get(i));
+                System.out.println("output i-" + i + ": " + outputNeuron.getOutput());
+
+                outputNeuron.updateWeightSingleLayer(targetOutputs.get(i), i);
                 outputNeuron.resetInput();
                 outputNeuron.reset();
             }
@@ -109,10 +115,17 @@ public class PerceptronTrainingRule extends Classifier {
     public void computeForward(Instance instance) throws Exception {
         List<Neuron> inputs = new ArrayList<>();
         for(int i=0; i<instance.numAttributes()-1; i++){
-            inputs.add(new Neuron().setOutput(instance.value(i)));
+            inputs.add(new Neuron(numInstance).setOutput(instance.value(i)));
         }
         outputNeuron.addInputs(inputs);
         outputNeuron.computeOutput();
+    }
+
+    public double classifyInstance(Instance instance) throws Exception {
+        outputNeuron.resetInput();
+        outputNeuron.reset();
+        computeForward(instance);
+        return outputNeuron.getOutput();
     }
 
     public void initStructure(Instances instances) {
@@ -124,7 +137,7 @@ public class PerceptronTrainingRule extends Classifier {
         Neuron.setMomentum(momentum);
 
         outputNeuron.initWeight(numAttribute + 1);
-        Neuron bias = new Neuron().setOutput(1);
+        Neuron bias = new Neuron(numInstance).setOutput(1);
         outputNeuron.addInput(bias);
     }
 }

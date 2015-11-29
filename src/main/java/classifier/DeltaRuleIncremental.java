@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class DeltaRuleIncremental extends Classifier {
     public static final int MODE_DELTA_RULE = 101;
     public static final int FUNCTION_TYPE_3 = 102;
-    Neuron outputNeuron = new Neuron();
+    Neuron outputNeuron;
     private List<Double> targetOutputs;
     private List<Double> outputs;
     private double initialWeight;
@@ -28,6 +28,7 @@ public class DeltaRuleIncremental extends Classifier {
     private int iteration;
     private int maxIteration;
     private double mseThreshold;
+    private int numInstance;
 
     public DeltaRuleIncremental(double initialWeight, double learningRate, double momentum, int maxIteration, double mseThreshold) {
         this.initialWeight = initialWeight;
@@ -62,6 +63,8 @@ public class DeltaRuleIncremental extends Classifier {
 
     @Override
     public void buildClassifier(Instances instances) throws Exception {
+        numInstance = instances.numInstances();
+        outputNeuron = new Neuron(numInstance);
         initStructure(instances);
         iteration=0;
 
@@ -89,7 +92,7 @@ public class DeltaRuleIncremental extends Classifier {
             for(int i=0; i<instances.numInstances(); i++) {
                 computeForward(instances.instance(i));
 //                outputs.add(outputNeuron.getOutput());
-                outputNeuron.updateWeightSingleLayer(targetOutputs.get(i));
+                outputNeuron.updateWeightSingleLayer(targetOutputs.get(i),i);
                 outputNeuron.resetInput();
                 outputNeuron.reset();
             }
@@ -110,10 +113,15 @@ public class DeltaRuleIncremental extends Classifier {
     public void computeForward(Instance instance) throws Exception {
         List<Neuron> inputs = new ArrayList<>();
         for(int i=0; i<instance.numAttributes()-1; i++){
-            inputs.add(new Neuron().setOutput(instance.value(i)));
+            inputs.add(new Neuron(numInstance).setOutput(instance.value(i)));
         }
         outputNeuron.addInputs(inputs);
         outputNeuron.computeOutput();
+    }
+
+    public double classifyInstance(Instance instance) {
+
+        return 0;
     }
 
     public void initStructure(Instances instances) {
@@ -125,7 +133,7 @@ public class DeltaRuleIncremental extends Classifier {
         Neuron.setMomentum(momentum);
 
         outputNeuron.initWeight(numAttribute + 1);
-        Neuron bias = new Neuron().setOutput(1);
+        Neuron bias = new Neuron(numInstance).setOutput(1);
         outputNeuron.addInput(bias);
     }
 }

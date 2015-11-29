@@ -3,7 +3,7 @@
 @attribute a1 numeric
 @attribute a2 numeric
 @attribute a3 numeric
-@attribute class {-1,1}
+@attribute class numeric
 
 @data
 1,0,1,-1

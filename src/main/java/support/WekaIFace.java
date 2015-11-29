@@ -77,9 +77,6 @@ public class WekaIFace {
         }else if(classifierType == MY_ANN){
             classifier = new MyANN(MyANN.MODE_MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.005d, 0.05d, 10000, 0.01d);
             classifier.buildClassifier(data);
-            for(int i=0; i<data.numInstances(); i++){
-                classifier.classifyInstance(data.instance(i));
-            }
         }
         return classifier;
     }

@@ -3,16 +3,14 @@ package support;
 import classifier.MyANN;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by gilang on 26/11/2015.
  */
 public class Neuron implements Serializable{
 
-
+    public static int smallestId = 0;
     private List<Neuron> inputsNeuron;
     private List<Double> inputsWeight;
     private static double initialWeight;
@@ -20,13 +18,16 @@ public class Neuron implements Serializable{
     private static int functionType;
     private static double learningRate;
     private static double momentum;
-    private List<Double> prevEpochDeltaWeight;
+    private List<Map<Integer,Double>> prevEpochDeltaWeight;
     private double errorOutput;
     private double output;
     private double error;
     private Random r;
+    private int id;
 
     public Neuron(int instancesSize){
+        id = smallestId;
+        smallestId++;
         inputsNeuron = new ArrayList<>();
         inputsWeight = new ArrayList<>();
         error = 0;
@@ -34,7 +35,9 @@ public class Neuron implements Serializable{
         errorOutput = 0;
         prevEpochDeltaWeight = new ArrayList<>();
         for (int i=0 ; i<instancesSize ; i++) {
-            prevEpochDeltaWeight.add(0d);
+            Map<Integer, Double> currentPrevWeight = new HashMap<>();
+            currentPrevWeight.put(-1, 0d);
+            prevEpochDeltaWeight.add(currentPrevWeight);
         }
         r = new Random();
     }
@@ -115,13 +118,17 @@ public class Neuron implements Serializable{
 
             // find dw
             double prevDW = 0;
-            if (n.prevEpochDeltaWeight.size() > instanceNumber) {
-                prevDW = n.prevEpochDeltaWeight.get(instanceNumber);
+            if (momentum != 0) {
+                if (n.prevEpochDeltaWeight.get(instanceNumber).containsKey(this.id)) {
+                    prevDW = n.prevEpochDeltaWeight.get(instanceNumber).get(this.id);
+                }
             }
             double deltaWeight = (error * learningRate * n.getOutput()) + momentum * prevDW;
 
             // save deltaweight for prevdeltaweight in next iteration
-            n.prevEpochDeltaWeight.set(instanceNumber, deltaWeight);
+            HashMap<Integer, Double> currentWeight = new HashMap<>();
+            currentWeight.put(this.id, deltaWeight);
+            n.prevEpochDeltaWeight.set(instanceNumber, currentWeight);
             double newWeight = inputsWeight.get(i) + deltaWeight;
 
             // update weight
@@ -138,13 +145,17 @@ public class Neuron implements Serializable{
 
             // find dw
             double prevDW = 0;
-            if (n.prevEpochDeltaWeight.size() > instanceNumber) {
-                prevDW = n.prevEpochDeltaWeight.get(instanceNumber);
+            if (momentum != 0) {
+                if (n.prevEpochDeltaWeight.get(instanceNumber).containsKey(this.id)) {
+                    prevDW = n.prevEpochDeltaWeight.get(instanceNumber).get(this.id);
+                }
             }
             double deltaWeight = (error * learningRate * n.getOutput()) + momentum * prevDW;
 
             // save deltaweight for prevdeltaweight in next iteration
-            n.prevEpochDeltaWeight.set(instanceNumber, deltaWeight);
+            HashMap<Integer, Double> currentWeight = new HashMap<>();
+            currentWeight.put(this.id, deltaWeight);
+            n.prevEpochDeltaWeight.set(instanceNumber, currentWeight);
 
             // update weight
             double newWeight = inputsWeight.get(i) + deltaWeight;

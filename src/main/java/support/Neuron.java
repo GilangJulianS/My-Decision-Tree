@@ -3,16 +3,14 @@ package support;
 import classifier.MyANN;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by gilang on 26/11/2015.
  */
 public class Neuron implements Serializable{
 
-
+    public static int smallestId = 0;
     private List<Neuron> inputsNeuron;
     private List<Double> inputsWeight;
     private static double initialWeight;
@@ -20,18 +18,28 @@ public class Neuron implements Serializable{
     private static int functionType;
     private static double learningRate;
     private static double momentum;
+    private List<Map<Integer,Double>> prevEpochDeltaWeight;
     private double errorOutput;
 //    private double deltaWeight;
     private double output;
     private double error;
     private Random r;
+    private int id;
 
-    public Neuron(){
+    public Neuron(int instancesSize){
+        id = smallestId;
+        smallestId++;
         inputsNeuron = new ArrayList<>();
         inputsWeight = new ArrayList<>();
         error = 0;
         output = 0;
         errorOutput = 0;
+        prevEpochDeltaWeight = new ArrayList<>();
+        for (int i=0 ; i<instancesSize ; i++) {
+            Map<Integer, Double> currentPrevWeight = new HashMap<>();
+            currentPrevWeight.put(-1, 0d);
+            prevEpochDeltaWeight.add(currentPrevWeight);
+        }
         r = new Random();
     }
 
@@ -109,10 +117,26 @@ public class Neuron implements Serializable{
     }
 
     /* Update input's weight. Used for any neurons except for output neuron */
-    public void updateWeight(){
+    public void updateWeight(int instanceNumber){
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron n = inputsNeuron.get(i);
-            double newWeight = inputsWeight.get(i) + (error * learningRate * n.getOutput());
+
+            // find dw
+            double prevDW = 0;
+            if (momentum != 0) {
+                if (n.prevEpochDeltaWeight.get(instanceNumber).containsKey(this.id)) {
+                    prevDW = n.prevEpochDeltaWeight.get(instanceNumber).get(this.id);
+                }
+            }
+            double deltaWeight = (error * learningRate * n.getOutput()) + momentum * prevDW;
+
+            // save deltaweight for prevdeltaweight in next iteration
+            HashMap<Integer, Double> currentWeight = new HashMap<>();
+            currentWeight.put(this.id, deltaWeight);
+            n.prevEpochDeltaWeight.set(instanceNumber, currentWeight);
+            double newWeight = inputsWeight.get(i) + deltaWeight;
+
+            // update weight
             inputsWeight.set(i, newWeight);
             n.setError((n.getOutput() * (1-n.getOutput()) * inputsWeight.get(i) * error) + n.getError());
 //            System.out.println(newWeight + " " + error);
@@ -120,10 +144,26 @@ public class Neuron implements Serializable{
     }
 
     /* Update input's weight. Used only for output neuron */
-    public void updateOutputWeight(){
+    public void updateOutputWeight(int instanceNumber){
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron n = inputsNeuron.get(i);
-            double newWeight = inputsWeight.get(i) + (error * learningRate * n.getOutput());
+
+            // find dw
+            double prevDW = 0;
+            if (momentum != 0) {
+                if (n.prevEpochDeltaWeight.get(instanceNumber).containsKey(this.id)) {
+                    prevDW = n.prevEpochDeltaWeight.get(instanceNumber).get(this.id);
+                }
+            }
+            double deltaWeight = (error * learningRate * n.getOutput()) + momentum * prevDW;
+
+            // save deltaweight for prevdeltaweight in next iteration
+            HashMap<Integer, Double> currentWeight = new HashMap<>();
+            currentWeight.put(this.id, deltaWeight);
+            n.prevEpochDeltaWeight.set(instanceNumber, currentWeight);
+
+            // update weight
+            double newWeight = inputsWeight.get(i) + deltaWeight;
             inputsWeight.set(i, newWeight);
             n.setError(n.getOutput() * (1-n.getOutput()) * inputsWeight.get(i) * error);
         }

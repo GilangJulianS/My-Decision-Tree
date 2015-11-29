@@ -93,7 +93,7 @@ public class MyANN extends Classifier {
         }
         while(true){
 //            if(iteration % 1000 == 0)
-//                System.out.println(mse + " " + iteration);
+                System.out.println(mse + " " + iteration);
 
             if(mseThreshold == -1 && maxIteration == -1)
                 break;

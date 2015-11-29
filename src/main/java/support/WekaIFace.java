@@ -27,6 +27,9 @@ public class WekaIFace {
     public static final int MY_ID3 = 4;
     public static final int MY_J48 = 5;
     public static final int MY_ANN = 6;
+    public static final int PTR = 7;
+    public static final int BATCH = 8;
+    public static final int DELTA_RULE = 9;
 
     public static Instances readArff(String fileName) throws Exception {
         // read file
@@ -73,10 +76,28 @@ public class WekaIFace {
             ((MyJ48)classifier).enablePrune(prune);
             classifier.buildClassifier(data);
         }else if(classifierType == MY_ANN){
-//            classifier = new MyANN(MyANN.MODE_MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.1d, 0d, -1, 0.01d);
-            classifier = new PerceptronTrainingRule(0d, 0.1d, 0d, -1, 0.01d);
-//            classifier = new DeltaRuleBatch(0d, 0.1d, 0d, -1, 0.01d);
-//            classifier = new DeltaRuleIncremental(0d, 0.1d, 0d, -1, 0.01d);
+//            classifier = new MyANN(MyANN.MODE_MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.1d, 0d, 1000, 1);
+//            classifier = new PerceptronTrainingRule(0d, 0.1d, 0d, 1000, 0.01d);
+            classifier = new DeltaRuleBatch(0d, 0.1d, 0d, 200, 0.01d);
+//            classifier = new DeltaRuleIncremental(0d, 0.1d, 0d, 200, 0.01d);
+            classifier.buildClassifier(data);
+        } else if(classifierType == PTR){
+//            classifier = new MyANN(MyANN.MODE_MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.1d, 0d, 1000, 1);
+            classifier = new PerceptronTrainingRule(0d, 0.1d, 0d, 1000, 0.01d);
+//            classifier = new DeltaRuleBatch(0d, 0.1d, 0d, 200, 0.01d);
+//            classifier = new DeltaRuleIncremental(0d, 0.1d, 0d, 200, 0.01d);
+            classifier.buildClassifier(data);
+        } else if(classifierType == BATCH){
+//            classifier = new MyANN(MyANN.MODE_MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.1d, 0d, 1000, 1);
+//            classifier = new PerceptronTrainingRule(0d, 0.1d, 0d, 1000, 0.01d);
+            classifier = new DeltaRuleBatch(0d, 0.1d, 0d, 200, 0.01d);
+//            classifier = new DeltaRuleIncremental(0d, 0.1d, 0d, 200, 0.01d);
+            classifier.buildClassifier(data);
+        } else if(classifierType == DELTA_RULE){
+//            classifier = new MyANN(MyANN.MODE_MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.1d, 0d, 1000, 1);
+//            classifier = new PerceptronTrainingRule(0d, 0.1d, 0d, 1000, 0.01d);
+//            classifier = new DeltaRuleBatch(0d, 0.1d, 0d, 200, 0.01d);
+            classifier = new DeltaRuleIncremental(0d, 0.1d, 0d, 200, 0.01d);
             classifier.buildClassifier(data);
         }
         return classifier;

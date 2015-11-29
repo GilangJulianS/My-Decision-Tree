@@ -43,6 +43,12 @@ public class MainClass {
                     algorithm = WekaIFace.MY_J48;
                 }else if(args[i+1].equals("ann")){
                     algorithm = WekaIFace.MY_ANN;
+                } else if(args[i+1].equals("ptr")){
+                    algorithm = WekaIFace.PTR;
+                } else if(args[i+1].equals("batch")){
+                    algorithm = WekaIFace.BATCH;
+                }else if(args[i+1].equals("delta")){
+                    algorithm = WekaIFace.DELTA_RULE;
                 }
             }else if(args[i].equals("-mode")){
                 if(args[i+1].equals("train")){

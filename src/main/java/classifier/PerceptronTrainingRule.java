@@ -125,6 +125,8 @@ public class PerceptronTrainingRule extends Classifier {
         outputNeuron.resetInput();
         outputNeuron.reset();
         computeForward(instance);
+//        System.out.println("weight " + )
+        System.out.println(">>" + outputNeuron.getOutput());
         return outputNeuron.getOutput();
     }
 

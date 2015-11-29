@@ -30,7 +30,7 @@ public class Util {
 
     public static double sign (double outputFromNet){
         if (outputFromNet < 0) {
-            return -1;
+            return 0;
         } else {
             return 1;
         }

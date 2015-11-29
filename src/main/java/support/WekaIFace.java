@@ -1,8 +1,6 @@
 package support;
 
-import classifier.MyANN;
-import classifier.MyID3;
-import classifier.MyJ48;
+import classifier.*;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
@@ -75,7 +73,10 @@ public class WekaIFace {
             ((MyJ48)classifier).enablePrune(prune);
             classifier.buildClassifier(data);
         }else if(classifierType == MY_ANN){
-            classifier = new MyANN(MyANN.MODE_MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.1d, 0d, -1, 0.01d);
+//            classifier = new MyANN(MyANN.MODE_MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.1d, 0d, -1, 0.01d);
+            classifier = new PerceptronTrainingRule(0d, 0.1d, 0d, -1, 0.01d);
+//            classifier = new DeltaRuleBatch(0d, 0.1d, 0d, -1, 0.01d);
+//            classifier = new DeltaRuleIncremental(0d, 0.1d, 0d, -1, 0.01d);
             classifier.buildClassifier(data);
         }
         return classifier;

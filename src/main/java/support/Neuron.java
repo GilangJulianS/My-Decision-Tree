@@ -21,6 +21,7 @@ public class Neuron implements Serializable{
     private static double learningRate;
     private static double momentum;
     private double errorOutput;
+//    private double deltaWeight;
     private double output;
     private double error;
     private Random r;
@@ -58,6 +59,8 @@ public class Neuron implements Serializable{
         inputsNeuron.addAll(inputs);
     }
 
+    public List<Neuron> getInputsNeuron() { return inputsNeuron; }
+
     public void initWeight(int inputNum){
         inputsWeight = new ArrayList<>();
         for(int i=0; i<inputNum; i++) {
@@ -83,6 +86,8 @@ public class Neuron implements Serializable{
             output = Util.sigmoid(net);
         }else if(functionType == MyANN.FUNCTION_SIGN){
             output = Util.sign(net);
+        } else if(functionType == MyANN.FUNCTION_TYPE_3) {
+            output = net;
         }
     }
 
@@ -124,6 +129,35 @@ public class Neuron implements Serializable{
         }
     }
 
+
+    public List<Double> getDeltaWeights (double targetOutput) {
+        ArrayList<Double> deltaWeights = new ArrayList<>();
+        for(int i=0; i<inputsNeuron.size(); i++){
+            Neuron inputNeuron = inputsNeuron.get(i);
+            double deltaWeight =  Util.deltaWeight(learningRate, targetOutput, output, inputNeuron.getOutput());
+            deltaWeights.add(i, deltaWeight);
+        }
+        return deltaWeights;
+    }
+
+    public void updateWeightSingleLayer (double targetOutput) {
+//        System.out.println("inputneuron: " + inputsNeuron.size());
+        for(int i=0; i<inputsNeuron.size(); i++){
+            Neuron inputNeuron = inputsNeuron.get(i);
+            double newWeight = inputsWeight.get(i) + Util.deltaWeight(learningRate, targetOutput, output, inputNeuron.getOutput());
+//            System.out.println("learningRate: " + learningRate + " targetoutput: " + targetOutput + " output: " + output + " inputNeuron : " + inputNeuron.getOutput());
+//            System.out.println("deltaWeight " + Util.deltaWeight(learningRate, targetOutput, output, inputNeuron.getOutput()));
+            inputsWeight.set(i, newWeight);
+        }
+    }
+
+    public void updateWeightCumulative(List<Double> deltaWeights) {
+        for (int i=0; i<inputsNeuron.size(); i++) {
+            double newWeight = inputsWeight.get(i) + deltaWeights.get(i);
+            inputsWeight.set(i, newWeight);
+        }
+    }
+
     /* Reset this neuron output value, error, and nextNeuron output for computing next instance */
     public void reset(){
         output = 0;
@@ -141,5 +175,4 @@ public class Neuron implements Serializable{
     public List<Double> getWeights(){
         return inputsWeight;
     }
-
 }

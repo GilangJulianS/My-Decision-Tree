@@ -49,7 +49,6 @@ public class MyANN extends Classifier {
         this.maxIteration = maxIteration;
         this.learningRate = learningRate;
         this.momentum = momentum;
-        targetOutputs = new ArrayList<>();
         mse = Double.POSITIVE_INFINITY;
         String[] temp = neuronsCount.split(",");
         neuronsNumber = new int[temp.length];
@@ -83,6 +82,7 @@ public class MyANN extends Classifier {
 
     @Override
     public void buildClassifier(Instances instances) throws Exception {
+        targetOutputs = new ArrayList<>();
         numInstance = instances.numInstances();
         initStructure(instances);
         printPerceptron();

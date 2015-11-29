@@ -56,7 +56,7 @@ public class Util {
 
     public static double MSE (List<Double> targets, List<Double> outputs) throws Exception{
         if (targets.size() != outputs.size()) {
-            throw new Exception();
+            throw new Exception(targets.size() + " " + outputs.size());
         }
 
         double MSE = 0;

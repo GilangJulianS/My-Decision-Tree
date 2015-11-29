@@ -92,8 +92,8 @@ public class MyANN extends Classifier {
 //            System.out.println(instances.instance(i).classValue());
         }
         while(true){
-            if(iteration % 1000 == 0)
-                System.out.println(mse + " " + iteration);
+//            if(iteration % 1000 == 0)
+//                System.out.println(mse + " " + iteration);
 
             if(mseThreshold == -1 && maxIteration == -1)
                 break;
@@ -242,7 +242,10 @@ public class MyANN extends Classifier {
 
     @Override
     public double classifyInstance(Instance instance) throws Exception {
-        return super.classifyInstance(instance);
+        resetNeurons();
+        computeForward(instance);
+//        System.out.println("classifying "  + layers.get(layers.size()-1).getOutput());
+        return layers.get(layers.size()-1).getOutput();
     }
 
     public void printPerceptron(){

@@ -75,7 +75,7 @@ public class WekaIFace {
             ((MyJ48)classifier).enablePrune(prune);
             classifier.buildClassifier(data);
         }else if(classifierType == MY_ANN){
-            classifier = new MyANN(MyANN.MODE_MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.1d, 0d, -1, 0.01d);
+            classifier = new MyANN(MyANN.MODE_MULTILAYER_PERCEPTRON, MyANN.FUNCTION_SIGMOID, 0d, "2", 0.005d, 0.05d, -1, 9d);
             classifier.buildClassifier(data);
         }
         return classifier;

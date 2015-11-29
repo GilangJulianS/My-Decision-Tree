@@ -20,17 +20,22 @@ public class Neuron implements Serializable{
     private static int functionType;
     private static double learningRate;
     private static double momentum;
+    private List<Double> prevEpochDeltaWeight;
     private double errorOutput;
     private double output;
     private double error;
     private Random r;
 
-    public Neuron(){
+    public Neuron(int instancesSize){
         inputsNeuron = new ArrayList<>();
         inputsWeight = new ArrayList<>();
         error = 0;
         output = 0;
         errorOutput = 0;
+        prevEpochDeltaWeight = new ArrayList<>();
+        for (int i=0 ; i<instancesSize ; i++) {
+            prevEpochDeltaWeight.add(0d);
+        }
         r = new Random();
     }
 
@@ -104,10 +109,22 @@ public class Neuron implements Serializable{
     }
 
     /* Update input's weight. Used for any neurons except for output neuron */
-    public void updateWeight(){
+    public void updateWeight(int instanceNumber){
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron n = inputsNeuron.get(i);
-            double newWeight = inputsWeight.get(i) + (error * learningRate * n.getOutput());
+
+            // find dw
+            double prevDW = 0;
+            if (n.prevEpochDeltaWeight.size() > instanceNumber) {
+                prevDW = n.prevEpochDeltaWeight.get(instanceNumber);
+            }
+            double deltaWeight = (error * learningRate * n.getOutput()) + momentum * prevDW;
+
+            // save deltaweight for prevdeltaweight in next iteration
+            n.prevEpochDeltaWeight.set(instanceNumber, deltaWeight);
+            double newWeight = inputsWeight.get(i) + deltaWeight;
+
+            // update weight
             inputsWeight.set(i, newWeight);
             n.setError((n.getOutput() * (1-n.getOutput()) * inputsWeight.get(i) * error) + n.getError());
 //            System.out.println(newWeight + " " + error);
@@ -115,10 +132,22 @@ public class Neuron implements Serializable{
     }
 
     /* Update input's weight. Used only for output neuron */
-    public void updateOutputWeight(){
+    public void updateOutputWeight(int instanceNumber){
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron n = inputsNeuron.get(i);
-            double newWeight = inputsWeight.get(i) + (error * learningRate * n.getOutput());
+
+            // find dw
+            double prevDW = 0;
+            if (n.prevEpochDeltaWeight.size() > instanceNumber) {
+                prevDW = n.prevEpochDeltaWeight.get(instanceNumber);
+            }
+            double deltaWeight = (error * learningRate * n.getOutput()) + momentum * prevDW;
+
+            // save deltaweight for prevdeltaweight in next iteration
+            n.prevEpochDeltaWeight.set(instanceNumber, deltaWeight);
+
+            // update weight
+            double newWeight = inputsWeight.get(i) + deltaWeight;
             inputsWeight.set(i, newWeight);
             n.setError(n.getOutput() * (1-n.getOutput()) * inputsWeight.get(i) * error);
         }

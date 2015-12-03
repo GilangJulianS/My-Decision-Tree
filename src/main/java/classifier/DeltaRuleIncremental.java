@@ -36,7 +36,6 @@ public class DeltaRuleIncremental extends Classifier {
         this.momentum = momentum;
         this.maxIteration = maxIteration;
         this.mseThreshold = mseThreshold;
-        targetOutputs = new ArrayList<>();
         mse = Double.POSITIVE_INFINITY;
     }
 
@@ -63,6 +62,7 @@ public class DeltaRuleIncremental extends Classifier {
 
     @Override
     public void buildClassifier(Instances instances) throws Exception {
+        targetOutputs = new ArrayList<>();
         numInstance = instances.numInstances();
         outputNeuron = new Neuron(numInstance);
         initStructure(instances);
@@ -119,9 +119,13 @@ public class DeltaRuleIncremental extends Classifier {
         outputNeuron.computeOutput();
     }
 
-    public double classifyInstance(Instance instance) {
-
-        return 0;
+    public double classifyInstance(Instance instance) throws Exception {
+        outputNeuron.resetInput();
+        outputNeuron.reset();
+        computeForward(instance);
+//        System.out.println("weight " + )
+        System.out.println(">>" + outputNeuron.getOutput());
+        return outputNeuron.getOutput();
     }
 
     public void initStructure(Instances instances) {

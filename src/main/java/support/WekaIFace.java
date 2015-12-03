@@ -27,6 +27,9 @@ public class WekaIFace {
     public static final int MY_ID3 = 4;
     public static final int MY_J48 = 5;
     public static final int MY_ANN = 6;
+    public static final int PTR = 7;
+    public static final int BATCH = 8;
+    public static final int DELTA_RULE = 9;
 
     public static Instances readArff(String fileName) throws Exception {
         // read file

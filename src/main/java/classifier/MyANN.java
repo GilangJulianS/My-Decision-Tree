@@ -29,6 +29,7 @@ public class MyANN extends Classifier {
     private List<NeuronLayer> layers;
     private List<Double> targetOutputs;
     private List<Double> outputs;
+    private List<Double> deltaWeights;
     private int[] neuronsNumber;
     private double initialWeight;
     private double mse;
@@ -88,13 +89,16 @@ public class MyANN extends Classifier {
     }
 
     @Override
-    public void buildClassifier(Instances instances) throws Exception {
-	    mse = Double.POSITIVE_INFINITY;
+    public void buildClassifier(Instances instances) throws Exception {;
+        mse = Double.POSITIVE_INFINITY;
 	    targetOutputs = new ArrayList<>();
         numInstance = instances.numInstances();
         initStructure(instances);
         printPerceptron();
         iteration = 0;
+        deltaWeights = new ArrayList<>();
+        double deltaWeight;
+        List<Double> temp = new ArrayList<>();
         for(int i=0; i<instances.numInstances(); i++){
             targetOutputs.add(instances.instance(i).classValue());
 //            System.out.println(instances.instance(i).classValue());
@@ -136,6 +140,25 @@ public class MyANN extends Classifier {
 //                        }
 //                    }
 //                }
+                if (mode == MODE_BATCH_GRADIENT_DESCENT) {
+                    for(Neuron n : layers.get(0).neurons) {
+                        if (i == 0) {
+                            for (int k = 0; k < n.getInputsNeuron().size(); k++) {
+                                temp.add(k, 0d);
+                                //                        System.out.println("temp" + temp.get(k));
+                            }
+                        }
+                        for (int j = 0; j < n.getInputsNeuron().size(); j++) {
+                            deltaWeight = n.getDeltaWeights(targetOutputs.get(i)).get(j);
+                            deltaWeights.add(j, temp.get(j) + deltaWeight);
+                            temp.set(j, deltaWeights.get(j));
+                        }
+
+                        if (i == instances.numInstances() - 1) {
+                            n.updateWeightCumulative(deltaWeights, i);
+                        }
+                    }
+                }
                 //reset neuron
                 resetNeurons();
             }
@@ -185,6 +208,7 @@ public class MyANN extends Classifier {
     }
 
     public void backProp(Instance instance, int instanceNumber){
+        //System.out.println("tes");
         double target = instance.classValue();
 
         //iterate output neurons
@@ -203,7 +227,11 @@ public class MyANN extends Classifier {
 		        }
             }
 //	        System.out.println("output " + n.getOutput() + " error " + n.getError());
-            n.updateOutputWeight(instanceNumber, mode);
+            if(mode == MODE_BATCH_GRADIENT_DESCENT) {
+                // do nothing
+            } else {
+                n.updateOutputWeight(instanceNumber, mode);
+            }
         }
 
         for(int i=layers.size()-2; i>=0; i--){

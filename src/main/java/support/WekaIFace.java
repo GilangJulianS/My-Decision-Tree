@@ -85,6 +85,15 @@ public class WekaIFace {
 //            for(int i=0; i<data.numInstances(); i++){
 //                classifier.classifyInstance(data.instance(i));
 //            }
+        } else if (classifierType == PTR) {
+            classifier = new MyANN(MyANN.MODE_PERCEPTRON_TRAINING_RULE, 0d, "", 0.2d, 0d, 100, 0.01d);
+            classifier.buildClassifier(data);
+        } else if (classifierType == BATCH) {
+            classifier = new MyANN(MyANN.MODE_BATCH_GRADIENT_DESCENT, 0d, "", 0.2d, 0d, 100, 0.01d);
+            classifier.buildClassifier(data);
+        } else if (classifierType == DELTA_RULE) {
+            classifier = new MyANN(MyANN.MODE_DELTA_RULE_INCREMENTAL, 0d, "", 0.2d, 0d, 100, 0.01d);
+            classifier.buildClassifier(data);
         }
         return classifier;
     }

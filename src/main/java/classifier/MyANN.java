@@ -20,9 +20,9 @@ public class MyANN extends Classifier {
 
     public static final int FUNCTION_SIGMOID = 100;
     public static final int FUNCTION_SIGN = 101;
-    public static final int FUNCTION_TYPE_3 = 102;
+    public static final int FUNCTION_NET = 102;
     public static final int MODE_PERCEPTRON_TRAINING_RULE = 100;
-    public static final int MODE_DELTA_RULE = 101;
+    public static final int MODE_DELTA_RULE_INCREMENTAL = 101;
     public static final int MODE_BATCH_GRADIENT_DESCENT = 102;
     public static final int MODE_MULTILAYER_PERCEPTRON = 103;
     public static final double RANDOM_WEIGHT = -999;
@@ -40,22 +40,31 @@ public class MyANN extends Classifier {
     private int mode;
     private int functionType;
     private int numInstance;
+	private double minMSE = Double.MAX_VALUE;
 
-    public MyANN(int mode, int functionType, double initialWeight, String neuronsCount, double learningRate, double momentum, int maxIteration, double mseThreshold){
+    public MyANN(int mode, double initialWeight, String neuronsCount, double learningRate, double momentum, int maxIteration, double mseThreshold){
         this.mode = mode;
-        this.functionType = functionType;
+	    if(mode == MODE_MULTILAYER_PERCEPTRON)
+            functionType = FUNCTION_SIGMOID;
+	    else if(mode == MODE_PERCEPTRON_TRAINING_RULE)
+		    functionType = FUNCTION_SIGN;
+	    else
+	        functionType = FUNCTION_NET;
         this.initialWeight = initialWeight;
         this.mseThreshold = mseThreshold;
         this.maxIteration = maxIteration;
         this.learningRate = learningRate;
         this.momentum = momentum;
-        mse = Double.POSITIVE_INFINITY;
-        String[] temp = neuronsCount.split(",");
-        neuronsNumber = new int[temp.length];
-        int i=0;
-        for(String s : temp){
-            neuronsNumber[i] = Integer.valueOf(s);
-            i++;
+        if(mode == MODE_MULTILAYER_PERCEPTRON) {
+	        String[] temp = neuronsCount.split(",");
+	        neuronsNumber = new int[temp.length];
+	        int i = 0;
+	        for (String s : temp) {
+		        neuronsNumber[i] = Integer.valueOf(s);
+		        i++;
+	        }
+        }else{
+	        neuronsNumber = new int[0];
         }
     }
 
@@ -66,9 +75,7 @@ public class MyANN extends Classifier {
 
         capabilities.enable(Capability.BINARY_CLASS);
         capabilities.enable(Capability.NOMINAL_CLASS);
-        capabilities.enable(Capability.NUMERIC_CLASS);
         capabilities.enable(Capability.MISSING_CLASS_VALUES);
-        capabilities.enable(Capability.DATE_CLASS);
         capabilities.enable(Capability.BINARY_ATTRIBUTES);
         capabilities.enable(Capability.DATE_ATTRIBUTES);
         capabilities.enable(Capability.UNARY_ATTRIBUTES);
@@ -82,7 +89,8 @@ public class MyANN extends Classifier {
 
     @Override
     public void buildClassifier(Instances instances) throws Exception {
-        targetOutputs = new ArrayList<>();
+	    mse = Double.POSITIVE_INFINITY;
+	    targetOutputs = new ArrayList<>();
         numInstance = instances.numInstances();
         initStructure(instances);
         printPerceptron();
@@ -94,8 +102,10 @@ public class MyANN extends Classifier {
         while(true){
 //            if(iteration % 1000 == 0)
                 System.out.println(mse + " " + iteration);
-
-            if(mseThreshold == -1 && maxIteration == -1)
+//	        if(mse < minMSE)
+//		        minMSE = mse;
+//	        System.out.println("min MSE " + minMSE);
+	        if(mseThreshold == -1 && maxIteration == -1)
                 break;
             if(mseThreshold != -1)
                 if(mse <= mseThreshold)
@@ -103,12 +113,11 @@ public class MyANN extends Classifier {
             if(maxIteration != -1)
                 if(iteration >= maxIteration)
                     break;
-
-            //satu epoch
+	        //satu epoch
             for(int i=0; i<instances.numInstances(); i++){
                 computeForward(instances.instance(i));
 
-//                if(iteration % 1000000 == 0)
+//                if(iteration % 1000 == 0)
 //                    System.out.println("\r\n>>>>>output - target " + layers.get(layers.size()-1).getOutput() + " " + targetOutputs.get(i));
 
                 backProp(instances.instance(i), i);
@@ -145,7 +154,7 @@ public class MyANN extends Classifier {
     }
 
     public void resetNeurons(){
-        for(NeuronLayer nl : layers){
+	    for(NeuronLayer nl : layers){
             for(Neuron n : nl.neurons){
                 n.reset();
             }
@@ -158,14 +167,18 @@ public class MyANN extends Classifier {
     public void computeForward(Instance instance) throws Exception {
         //add input to each first layer node
         List<Neuron> inputs = new ArrayList<>();
-        for(int i=0; i<instance.numAttributes()-1; i++){
+
+        //adding inputs
+	    for(int i=0; i<instance.numAttributes()-1; i++){
             inputs.add(new Neuron(numInstance).setOutput(instance.value(i)));
         }
         for(Neuron n : layers.get(0).neurons){
-            n.addInputs(inputs);
+	        n.addInputs(inputs);
         }
-        for(NeuronLayer layer : layers){
-            for (Neuron n : layer.neurons) {
+
+        //computing output of each node
+	    for(NeuronLayer layer : layers){
+		    for (Neuron n : layer.neurons) {
                 n.computeOutput();
             }
         }
@@ -177,16 +190,21 @@ public class MyANN extends Classifier {
         //iterate output neurons
         for(int i=0; i<layers.get(layers.size()-1).neurons.size(); i++){
             Neuron n = layers.get(layers.size()-1).neurons.get(i);
-            if((double)i == target){
-                n.setError(Util.errorOutput(n.getOutput(), 1d));
-            }else{
-                n.setError(Util.errorOutput(n.getOutput(), 0));
+
+            // if neuron index == target, then error = 0
+            // else error = 1
+	        if((double)i == target){
+                n.setError(Util.errorOutput(n.getOutput(), 1d, mode));
+	        }else{
+		        if(functionType == FUNCTION_SIGN) {
+			        n.setError(Util.errorOutput(n.getOutput(), -1d, mode));
+		        }else{
+			        n.setError(Util.errorOutput(n.getOutput(), 0, mode));
+		        }
             }
-            n.updateOutputWeight(instanceNumber);
+//	        System.out.println("output " + n.getOutput() + " error " + n.getError());
+            n.updateOutputWeight(instanceNumber, mode);
         }
-//        for(int j=0; j<outputNeuron.getWeights().size(); j++){
-//            System.out.println("weight " + outputNeuron.getWeights().get(j));
-//        }
 
         for(int i=layers.size()-2; i>=0; i--){
             for(Neuron n : layers.get(i).neurons){
@@ -208,7 +226,7 @@ public class MyANN extends Classifier {
         Neuron.setMomentum(momentum);
         layers = new ArrayList<>();
         //iterasi layer, layer terakhir adalah output
-        for(int i=0; i<=neuronsNumber.length; i++){
+	    for(int i=0; i<=neuronsNumber.length; i++){
             List<Neuron> neurons = new ArrayList<>();
 
             //add neuron ke layer

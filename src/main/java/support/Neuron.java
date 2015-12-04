@@ -94,7 +94,7 @@ public class Neuron implements Serializable{
             output = Util.sigmoid(net);
         }else if(functionType == MyANN.FUNCTION_SIGN){
             output = Util.sign(net);
-        } else if(functionType == MyANN.FUNCTION_TYPE_3) {
+        } else if(functionType == MyANN.FUNCTION_NET) {
             output = net;
         }
     }
@@ -144,7 +144,7 @@ public class Neuron implements Serializable{
     }
 
     /* Update input's weight. Used only for output neuron */
-    public void updateOutputWeight(int instanceNumber){
+    public void updateOutputWeight(int instanceNumber, int mode){
         for(int i=0; i<inputsNeuron.size(); i++){
             Neuron n = inputsNeuron.get(i);
 
@@ -165,7 +165,8 @@ public class Neuron implements Serializable{
             // update weight
             double newWeight = inputsWeight.get(i) + deltaWeight;
             inputsWeight.set(i, newWeight);
-            n.setError(n.getOutput() * (1-n.getOutput()) * inputsWeight.get(i) * error);
+            if(mode == MyANN.MODE_MULTILAYER_PERCEPTRON)
+                n.setError(n.getOutput() * (1-n.getOutput()) * inputsWeight.get(i) * error);
         }
     }
 

@@ -1,5 +1,7 @@
 package support;
 
+import classifier.MyANN;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +14,11 @@ public class Util {
         return (double)1 / (double)(1 + Math.exp(-outputFromNet));
     }
 
-    public static double errorOutput (double output, double target){
-        return (output * (1-output) * (target - output));
+    public static double errorOutput (double output, double target, int mode){
+        if(mode == MyANN.MODE_MULTILAYER_PERCEPTRON)
+            return (output * (1-output) * (target - output));
+        else
+            return target - output;
     }
 
     public static double deltaWeightHiddenNeuronToOutput (double learningRate, double errorOutput, double outputHiddenNeuron){
